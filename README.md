@@ -5,11 +5,11 @@ A graphically simple, top-down arena shooter with roguelite elements developed f
 ## 🎮 Project Overview
 The objective is to create a fast-paced survival experience where players face waves of enemies in a randomized arena. This project focuses on solid game-loop mechanics and procedural elements rather than high-fidelity graphics.
 
-### Core Featur   ges
-**Top-Down Combat:** Precise 8-directional movement and mouse-aimed shooting mechanics.
-**Roguelite Progression:** Randomized power-ups and upgrades available upon leveling up.
-**Procedural Arenas:** Dynamic floor generation to ensure no two runs are the same.
-**AI Enemies:** Various enemy types with unique tracking and attacking behaviors.
+### Core Features
+* **Top-Down Combat:** Precise 8-directional movement and mouse-aimed shooting mechanics.
+* **Roguelite Progression:** Randomized power-ups and upgrades available upon leveling up.
+* **Procedural Arenas:** Dynamic floor generation to ensure no two runs are the same.
+* **AI Enemies:** Various enemy types with unique tracking and attacking behaviors.
 
 ## 🛠 Tech Stack
 * **Engine:** Godot Engine (v4.x).
