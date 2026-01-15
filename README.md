@@ -3,13 +3,13 @@
 A graphically simple, top-down arena shooter with roguelite elements developed for the CS Capstone course.
 
 ## 🎮 Project Overview
-[cite_start]The objective is to create a fast-paced survival experience where players face waves of enemies in a randomized arena[cite: 1]. This project focuses on solid game-loop mechanics and procedural elements rather than high-fidelity graphics.
+The objective is to create a fast-paced survival experience where players face waves of enemies in a randomized arena[cite: 1]. This project focuses on solid game-loop mechanics and procedural elements rather than high-fidelity graphics.
 
-### Core Features
-* [cite_start]**Top-Down Combat:** Precise 8-directional movement and mouse-aimed shooting mechanics[cite: 8, 11].
-* [cite_start]**Roguelite Progression:** Randomized power-ups and upgrades available upon leveling up[cite: 8, 11].
-* [cite_start]**Procedural Arenas:** Dynamic floor generation to ensure no two runs are the same[cite: 8, 11].
-* [cite_start]**AI Enemies:** Various enemy types with unique tracking and attacking behaviors[cite: 8, 11].
+### Core Featur   ges
+**Top-Down Combat:** Precise 8-directional movement and mouse-aimed shooting mechanics.
+**Roguelite Progression:** Randomized power-ups and upgrades available upon leveling up.
+**Procedural Arenas:** Dynamic floor generation to ensure no two runs are the same.
+**AI Enemies:** Various enemy types with unique tracking and attacking behaviors.
 
 ## 🛠 Tech Stack
 * **Engine:** Godot Engine (v4.x).
@@ -17,12 +17,12 @@ A graphically simple, top-down arena shooter with roguelite elements developed f
 * **Version Control:** Git/GitHub for collaborative development.
 
 ## 👥 The Team & Roles
-[cite_start]The team has been assigned specific user stories to complete during the current sprint[cite: 2, 6, 10]:
-* [cite_start]**Piero:** Core Player Movement & Physics[cite: 10, 11].
-* [cite_start]**Jason:** Combat & Projectile Systems[cite: 10, 11].
-* [cite_start]**Marco:** Enemy AI & Pathfinding[cite: 10, 11].
-* [cite_start]**Mahian:** Roguelite Logic & UI Systems[cite: 10, 11].
-* [cite_start]**Marcos:** Procedural Generation & Environment[cite: 10, 11].
+The team has been assigned specific user stories to complete during the current sprint:
+**Piero:** Core Player Movement & Physics.
+**Jason:** Combat & Projectile Systems.
+**Marco:** Enemy AI & Pathfinding.
+**Mahian:** Roguelite Logic & UI Systems.
+**Marcos:** Procedural Generation & Environment.
 
 ## 🚀 Getting Started
 To run the project locally:
