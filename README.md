@@ -3,7 +3,7 @@
 A graphically simple, top-down arena shooter with roguelite elements developed for the CS Capstone course.
 
 ## 🎮 Project Overview
-The objective is to create a fast-paced survival experience where players face waves of enemies in a randomized arena[cite: 1]. This project focuses on solid game-loop mechanics and procedural elements rather than high-fidelity graphics.
+The objective is to create a fast-paced survival experience where players face waves of enemies in a randomized arena. This project focuses on solid game-loop mechanics and procedural elements rather than high-fidelity graphics.
 
 ### Core Featur   ges
 **Top-Down Combat:** Precise 8-directional movement and mouse-aimed shooting mechanics.
@@ -18,11 +18,11 @@ The objective is to create a fast-paced survival experience where players face w
 
 ## 👥 The Team & Roles
 The team has been assigned specific user stories to complete during the current sprint:
-**Piero:** Core Player Movement & Physics.
-**Jason:** Combat & Projectile Systems.
-**Marco:** Enemy AI & Pathfinding.
-**Mahian:** Roguelite Logic & UI Systems.
-**Marcos:** Procedural Generation & Environment.
+* **Piero:** Core Player Movement & Physics.
+* **Jason:** Combat & Projectile Systems.
+* **Marco:** Enemy AI & Pathfinding.
+* **Mahian:** Roguelite Logic & UI Systems.
+* **Marcos:** Procedural Generation & Environment.
 
 ## 🚀 Getting Started
 To run the project locally:
