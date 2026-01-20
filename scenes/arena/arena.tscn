@@ -1864,11 +1864,13 @@ shape = SubResource("RectangleShape2D_aj7ud")
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
 texture = ExtResource("3_aj7ud")
 
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Button" type="Button" parent="CanvasLayer"]
 offset_right = 8.0
 offset_bottom = 8.0
-text = "Restart Arena"
+text = "Regen Arena"
 
 [connection signal="pressed" from="CanvasLayer/Button" to="." method="_on_button_pressed"]

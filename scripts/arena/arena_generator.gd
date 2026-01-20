@@ -1,43 +1,57 @@
 extends Node2D
 
-@export var width: int = 20
-@export var height: int = 12
 @export var tile_layer: TileMapLayer
-@export_range(0, 1) var obstacle_density: float = 0.1 # 10% chance for random walls
+# Initialize the noise generator
+var noise = FastNoiseLite.new()
 
 var floor_atlas_coords = Vector2i(0, 0)
 var wall_atlas_coords = Vector2i(6, 12)
-var box_atlas_coords = Vector2i(10, 10)
 
 func _ready():
-	# Calling randomize() ensures different seed every time
 	randomize()
+	# Configure noise for organic "blobs"
+	noise.seed = randi()
+	noise.frequency = 0.1 # Lower values create larger open rooms
 	generate_arena()
 
 func generate_arena():
 	if not tile_layer: return
+	noise.seed = randi() # New layout every restart
 	
-	# Get screen size (pixels)
 	var screen_size = get_viewport_rect().size
 	var tile_size = 16
-	
-	# Calculates how many tiles fit in the screen
-	var screen_width_in_tiles = int(screen_size.x / tile_size)
-	var screen_height_in_tiles = int(screen_size.y / tile_size)
+	var columns = int(screen_size.x / tile_size)
+	var rows = int(screen_size.y / tile_size)
 	
 	tile_layer.clear()
 	
-	for x in range(screen_width_in_tiles):
-		for y in range(screen_height_in_tiles):
-			if x == 0 or x == screen_width_in_tiles -1 or y == 0 or y == screen_height_in_tiles:
+	# Define Safe Zone around the center (where player spawns)
+	var center_x = columns / 2
+	var center_y = rows / 2
+	var safe_radius = 3 # No walls within 3 tiles of the center
+	
+	for x in range(columns):
+		for y in range(rows):
+			# 1. Force the outer boundary walls
+			if x == 0 or x == columns - 1 or y == 0 or y == rows - 1:
 				tile_layer.set_cell(Vector2i(x,y), 0, wall_atlas_coords)
-			elif randf() < 0.1:
-				tile_layer.set_cell(Vector2i(x,y), 0, wall_atlas_coords)
-			else:
+			
+			# 2. Check for the Safe Zone
+			elif abs(x - center_x) < safe_radius and abs(y - center_y) < safe_radius:
 				tile_layer.set_cell(Vector2i(x,y), 0, floor_atlas_coords)
+				
+			# 3. Procedural Walls using Noise
+			else:
+				var noise_val = noise.get_noise_2d(x, y)
+				# If noise value is high, place a wall; otherwise, floor
+				if noise_val > 0.25: 
+					tile_layer.set_cell(Vector2i(x,y), 0, wall_atlas_coords)
+				else:
+					tile_layer.set_cell(Vector2i(x,y), 0, floor_atlas_coords)
+
 func _on_button_pressed():
 	generate_arena()
-	
 	var player = get_node_or_null("Player")
 	if player:
-		player.position = Vector2(150, 150)
+		# Move player to center of the current screen resolution
+		player.position = get_viewport_rect().size / 2
