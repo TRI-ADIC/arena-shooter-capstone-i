@@ -1,10 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://7nl6k4su66c3"]
+[gd_scene load_steps=8 format=3 uid="uid://7nl6k4su66c3"]
 
 [ext_resource type="Script" uid="uid://clkuum7ik8j3o" path="res://scripts/arena/arena_generator.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bdtftri645uf7" path="res://assets/tiles/Sample_platformer.png" id="2_8trdl"]
-[ext_resource type="PackedScene" uid="uid://dihpf3pedy3l" path="res://scenes/player.tscn" id="3_5tue2"]
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_aj7ud"]
+[ext_resource type="Texture2D" uid="uid://70pxo5b8u8m6" path="res://icon.svg" id="3_aj7ud"]
+[ext_resource type="Script" uid="uid://ckgofvdm82s4y" path="res://scripts/player.gd" id="4_asdgj"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5tue2"]
 texture = ExtResource("2_8trdl")
@@ -589,6 +588,8 @@ texture = ExtResource("2_8trdl")
 8:10/0 = 0
 9:10/0 = 0
 10:10/0 = 0
+10:10/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, -8, -8, -8, -8, 8, 0, 8, 8, 8, 8, -8)
+10:10/0/physics_layer_0/polygon_0/one_way = true
 11:10/0 = 0
 12:10/0 = 0
 13:10/0 = 0
@@ -699,6 +700,8 @@ texture = ExtResource("2_8trdl")
 4:12/0 = 0
 5:12/0 = 0
 6:12/0 = 0
+6:12/0/physics_layer_0/linear_velocity = Vector2(1, 1)
+6:12/0/physics_layer_0/polygon_0/points = PackedVector2Array(0, -8, -8, -8, -8, 8, 0, 8, 8, 8, 8, -8)
 7:12/0 = 0
 8:12/0 = 0
 9:12/0 = 0
@@ -1834,17 +1837,38 @@ texture = ExtResource("2_8trdl")
 56:31/0 = 0
 
 [sub_resource type="TileSet" id="TileSet_aj7ud"]
+tile_shape = 2
+tile_layout = 1
 physics_layer_0/collision_layer = 1
-physics_layer_0/physics_material = SubResource("PhysicsMaterial_aj7ud")
 sources/0 = SubResource("TileSetAtlasSource_5tue2")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_aj7ud"]
 
 [node name="Arena" type="Node2D" node_paths=PackedStringArray("tile_layer")]
 script = ExtResource("1_script")
 tile_layer = NodePath("TileMapLayer")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
-position = Vector2(9, -1)
 tile_set = SubResource("TileSet_aj7ud")
+collision_visibility_mode = 1
 
-[node name="Player" parent="." instance=ExtResource("3_5tue2")]
-position = Vector2(23, 22)
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+z_index = 1
+position = Vector2(104, 103)
+scale = Vector2(0.2, 0.2)
+script = ExtResource("4_asdgj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("RectangleShape2D_aj7ud")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+texture = ExtResource("3_aj7ud")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Button" type="Button" parent="CanvasLayer"]
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Restart Arena"
+
+[connection signal="pressed" from="CanvasLayer/Button" to="." method="_on_button_pressed"]

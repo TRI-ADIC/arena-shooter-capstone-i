@@ -11,8 +11,14 @@ config_version=5
 [application]
 
 config/name="Arena Shooter Capstone I"
+run/main_scene="uid://7nl6k4su66c3"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
+
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [rendering]
 
