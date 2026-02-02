@@ -1,11 +1,13 @@
-extends Node
+# scripts/ai/fsm_state.gd
+extends RefCounted
 
+class_name FSMState
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+var owner : Node = null   # the enemy node that owns this state
 
+func _init(_owner):
+	owner = _owner
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func enter(): pass
+func exit(): pass
+func physics_process(delta): pass
