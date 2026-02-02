@@ -1,11 +1,15 @@
-extends Node
+# scripts/ai/state_idle.gd
+extends FSMState
+class_name StateIdle
 
+@export var idle_time : float = 1.0
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
+var _elapsed : float = 0.0
 
+func enter():
+	_elapsed = 0.0
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+func physics_process(delta):
+	_elapsed += delta
+	if _elapsed >= idle_time:
+		owner.emit_signal("idle_finished")

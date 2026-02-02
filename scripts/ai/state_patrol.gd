@@ -2,18 +2,21 @@
 extends FSMState
 class_name StatePatrol
 
-var patrol_points = []
-var current_index = 0
-var speed = 120
+@export var patrol_points : Array[Vector2] = []   # set in the inspector or from code
+@export var speed : float = 120.0
+
+var _current_index : int = 0
 
 func enter():
-	# pick a random start point or reset index
-	current_index = randi() % patrol_points.size()
+	_current_index = randi() % patrol_points.size()
 
 func physics_process(delta):
-	var target = patrol_points[current_index]
+	if patrol_points.empty():
+		return
+	
+	var target = patrol_points[_current_index]
 	var direction = (target - owner.global_position).normalized()
 	owner.move_and_slide(direction * speed)
 
-	if owner.global_position.distance_to(target) < 10:
-		current_index = (current_index + 1) % patrol_points.size()
+	if owner.global_position.distance_to(target) < 10.0:
+		_current_index = (_current_index + 1) % patrol_points.size()
