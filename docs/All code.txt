@@ -1,0 +1,311 @@
+# scripts/ai/enemy_ai.gd
+extends CharacterBody2D   # Godot 4 – use KinematicBody2D for Godot 3
+
+# Preloads --------------------------------------------------------------
+const StatePatrol = preload("res://scripts/ai/state_patrol.gd")
+const StateChase  = preload("res://scripts/ai/state_chase.gd")
+const StateAttack = preload("res://scripts/ai/state_attack.gd")
+const StateDead   = preload("res://scripts/ai/state_dead.gd")
+const StateIdle   = preload("res://scripts/ai/state_idle.gd")
+
+# Signals ---------------------------------------------------------------
+signal lost_player
+signal player_out_of_range
+signal idle_finished
+
+# State storage ---------------------------------------------------------
+var _states = {}
+var _current_state : FSMState = null
+
+# ----------------------------------------------------------------------
+func _ready():
+	# Build the dictionary of state objects
+	_states["idle"]   = StateIdle.new(self)
+	_states["patrol"] = StatePatrol.new(self)
+	_states["chase"]  = StateChase.new(self)
+	_states["attack"] = StateAttack.new(self)
+	_states["dead"]   = StateDead.new(self)
+
+	# Connect signals that states may emit
+	connect("lost_player", Callable(self, "_on_lost_player"))
+	connect("player_out_of_range", Callable(self, "_on_player_out_of_range"))
+	connect("idle_finished", Callable(self, "_on_idle_finished"))
+
+	# Start with a brief idle, then patrol
+	change_state("idle")
+
+# ----------------------------------------------------------------------
+func change_state(name: String) -> void:
+	if _current_state:
+		_current_state.exit()
+	_current_state = _states[name]
+	_current_state.enter()
+
+# ----------------------------------------------------------------------
+func _physics_process(delta):
+	if _current_state:
+		_current_state.physics_process(delta)
+
+	# Global transition checks (you can also move them into states)
+	if _current_state == _states["patrol"] and sees_player():
+		change_state("chase")
+	elif _current_state == _states["chase"]:
+		if in_attack_range():
+			change_state("attack")
+		elif !sees_player():
+			change_state("patrol")
+	elif _current_state == _states["attack"]:
+		if !in_attack_range():
+			change_state("chase")
+		elif is_dead():
+			change_state("dead")
+
+# ----------------------------------------------------------------------
+# Helper utilities -------------------------------------------------------
+func sees_player() -> bool:
+	var player = get_node_or_null("/root/Main/Player")
+	if not player: return false
+	return owner.global_position.distance_to(player.global_position) < 400.0   # vision radius
+
+func in_attack_range() -> bool:
+	var player = get_node_or_null("/root/Main/Player")
+	if not player: return false
+	return owner.global_position.distance_to(player.global_position) < 250.0   # same as attack_range
+
+func is_dead() -> bool:
+	# Replace with your own health check
+	return owner.has_meta("hp") and owner.get_meta("hp") <= 0
+
+# ----------------------------------------------------------------------
+# Signal callbacks -------------------------------------------------------
+func _on_lost_player():
+	change_state("patrol")
+
+func _on_player_out_of_range():
+	change_state("patrol")
+
+func _on_idle_finished():
+	change_state("patrol")
+
+---
+
+# scripts/enemy_base.gd
+extends CharacterBody2D                 # Godot 4 – use KinematicBody2D for Godot 3
+
+# ------------------------------------------------------------------
+# ABSTRACT SETTINGS – child scenes should override these
+# ------------------------------------------------------------------
+@export var max_hp : int = 100          # default, can be changed per enemy
+@export var sprite_path : String = ""   # child sets a texture or AnimatedSprite2D
+@export var patrol_points : Array[Vector2] = []   # optional, used by FSM
+
+# ------------------------------------------------------------------
+# INTERNAL STATE (do NOT edit from children)
+# ------------------------------------------------------------------
+var _current_hp : int
+var _ai : Node = null                    # will hold the EnemyAI script instance
+
+# ------------------------------------------------------------------
+# SIGNALS – useful for UI, score, etc.
+# ------------------------------------------------------------------
+signal died                               # emitted when hp reaches 0
+
+# ------------------------------------------------------------------
+# READY – set up health, sprite, and attach the FSM
+# ------------------------------------------------------------------
+func _ready() -> void:
+	_current_hp = max_hp
+
+	# 1️⃣ Set up the visual representation (optional)
+	if sprite_path != "":
+		var tex = load(sprite_path)
+		if tex:
+			# Try to find a Sprite2D or AnimatedSprite2D child automatically
+			var spr = $Sprite2D if has_node("Sprite2D") else null
+			if spr:
+				spr.texture = tex
+			else:
+				# If the scene has no Sprite2D, create one on the fly
+				spr = Sprite2D.new()
+				spr.texture = tex
+				add_child(spr)
+
+	# 2️⃣ Attach the FSM (the AI script you already wrote)
+	var ai_scene = preload("res://scripts/ai/enemy_ai.gd")
+	_ai = ai_scene.new()
+	add_child(__ai)                       # makes _ai part of the node tree
+	# The AI expects the *owner* to be the enemy node; because we added it as a child,
+	# its `owner` property will automatically be this enemy node.
+
+	# 3️⃣ Pass any data the AI needs (e.g., patrol points)
+	if _ai.has_method("set_patrol_points"):
+		_ai.set_patrol_points(patrol_points)
+
+# ------------------------------------------------------------------
+# PUBLIC API – child scenes (or external code) can call these
+# ------------------------------------------------------------------
+func apply_damage(amount : int) -> void:
+	_current_hp = max(_current_hp - amount, 0)
+	if _current_hp == 0:
+		emit_signal("died")
+		# Let the FSM handle the death animation / removal
+		if _ai and _ai.has_method("change_state"):
+			_ai.change_state("dead")
+
+func heal(amount : int) -> void:
+	_current_hp = min(_current_hp + amount, max_hp)
+
+func get_health() -> int:
+	return _current_hp
+
+---
+# scripts/ai/fsm_state.gd
+extends RefCounted
+
+class_name FSMState
+
+var owner : Node = null   # the enemy node that owns this state
+
+func _init(_owner):
+	owner = _owner
+
+func enter(): pass
+func exit(): pass
+func physics_process(delta): pass
+
+---
+
+# scripts/ai/state_attack.gd
+extends FSMState
+class_name StateAttack
+
+@export var fire_rate : float = 1.5          # seconds between shots
+@export var attack_range : float = 250.0
+
+var _time_since_last_shot : float = 0.0
+
+func enter():
+	_time_since_last_shot = 0.0
+
+func physics_process(delta):
+	_time_since_last_shot += delta
+	
+	var player = get_node_or_null("/root/Main/Player")
+	if not player:
+		return
+	
+	var distance = owner.global_position.distance_to(player.global_position)
+	if distance > attack_range:
+		# Player left range – tell the AI to switch state
+		owner.emit_signal("player_out_of_range")
+		return
+	
+	if _time_since_last_shot >= fire_rate:
+		_time_since_last_shot = 0.0
+		fire_bullet()
+
+func fire_bullet():
+	# -----------------------------------------------------------------
+	# Replace this stub with your own projectile‑spawning code.
+	# Example (assuming you have a PackedScene called "Bullet.tscn"):
+	#
+	# var bullet_scene = preload("res://scenes/bullet.tscn")
+	# var bullet = bullet_scene.instantiate()
+	# bullet.global_position = owner.global_position
+	# var dir = (player.global_position - owner.global_position).normalized()
+	# bullet.direction = dir
+	# get_tree().root.add_child(bullet)
+	#
+	# -----------------------------------------------------------------
+	print("[Enemy] Fire! (stub)")
+
+---
+
+# scripts/ai/state_chase.gd
+extends FSMState
+class_name StateChase
+
+@export var chase_speed : float = 200.0
+@export var max_chase_distance : float = 800.0   # stop chasing if player gets too far
+
+func physics_process(delta):
+	var player = get_node_or_null("/root/Main/Player")
+	if not player:
+		return
+	
+	var to_player = player.global_position - owner.global_position
+	var distance = to_player.length()
+	
+	if distance > max_chase_distance:
+		# Too far – let the AI decide to go back to patrol
+		owner.emit_signal("lost_player")   # optional signal you can listen for
+		return
+	
+	var direction = to_player.normalized()
+	owner.move_and_slide(direction * chase_speed)
+
+---
+
+# scripts/ai/state_dead.gd
+extends FSMState
+class_name StateDead
+
+@export var death_animation : String = "die"
+@export var removal_delay : float = 0.5   # seconds after animation ends
+
+var _timer : float = 0.0
+
+func enter():
+	# Play a death animation if the enemy has an AnimationPlayer
+	var anim_player = owner.get_node_or_null("AnimationPlayer")
+	if anim_player and anim_player.has_animation(death_animation):
+		anim_player.play(death_animation)
+	_timer = 0.0
+
+func physics_process(delta):
+	_timer += delta
+	if _timer >= removal_delay:
+		owner.queue_free()
+
+---
+
+# scripts/ai/state_idle.gd
+extends FSMState
+class_name StateIdle
+
+@export var idle_time : float = 1.0
+
+var _elapsed : float = 0.0
+
+func enter():
+	_elapsed = 0.0
+
+func physics_process(delta):
+	_elapsed += delta
+	if _elapsed >= idle_time:
+		owner.emit_signal("idle_finished")
+
+---
+
+# scripts/ai/state_patrol.gd
+extends FSMState
+class_name StatePatrol
+
+@export var patrol_points : Array[Vector2] = []   # set in the inspector or from code
+@export var speed : float = 120.0
+
+var _current_index : int = 0
+
+func enter():
+	_current_index = randi() % patrol_points.size()
+
+func physics_process(delta):
+	if patrol_points.empty():
+		return
+	
+	var target = patrol_points[_current_index]
+	var direction = (target - owner.global_position).normalized()
+	owner.move_and_slide(direction * speed)
+
+	if owner.global_position.distance_to(target) < 10.0:
+		_current_index = (_current_index + 1) % patrol_points.size()
