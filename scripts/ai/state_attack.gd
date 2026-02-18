@@ -13,7 +13,7 @@ func enter():
 func physics_process(delta):
 	_time_since_last_shot += delta
 	
-	var player = get_node_or_null("/root/Main/Player")
+	var player = owner.get_node_or_null("Player")
 	if not player:
 		return
 	

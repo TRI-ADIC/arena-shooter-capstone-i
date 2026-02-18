@@ -1,3 +1,20 @@
-[gd_scene format=3 uid="uid://de2yq4ply4tye"]
+[gd_scene load_steps=4 format=3 uid="uid://de2yq4ply4tye"]
+
+[ext_resource type="Script" uid="uid://dhvtm6eddq3mx" path="res://scripts/enemy_base.gd" id="1_qsge8"]
+[ext_resource type="Texture2D" uid="uid://u6ipo3rhsxee" path="res://assets/sprites/enemy_base_sprite_temp.jpg" id="1_un3sv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_un3sv"]
+size = Vector2(72, 74)
 
 [node name="EnemyBase" type="Node2D"]
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+position = Vector2(902, 104)
+script = ExtResource("1_qsge8")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+scale = Vector2(0.105882354, 0.10588232)
+texture = ExtResource("1_un3sv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("RectangleShape2D_un3sv")
