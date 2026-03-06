@@ -3,10 +3,10 @@ extends RefCounted
 
 class_name FSMState
 
-var owner : Node = null   # the enemy node that owns this state
+var enemy : CharacterBody2D = null   # the actual enemy body
 
-func _init(_owner):
-	owner = _owner
+func _init(_enemy : CharacterBody2D):
+	enemy = _enemy
 
 func enter(): pass
 func exit(): pass

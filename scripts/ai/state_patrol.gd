@@ -21,9 +21,12 @@ func physics_process(delta):
 		return
 	
 	var target : Vector2 = patrol_points[_current_index]
-	var direction : Vector2 = (target - owner.global_position).normalized()
-	owner.move_and_slide(direction * speed)
+	var direction : Vector2 = (target - enemy.global_position).normalized()
+	# 1️⃣ Set the body’s velocity
+	enemy.velocity = direction * speed
+	# 2️⃣ Apply the movement for this physics frame
+	enemy.move_and_slide()
 
 	# Switch to the next waypoint when we’re close enough
-	if owner.global_position.distance_to(target) < 10.0:
+	if enemy.global_position.distance_to(target) < 10.0:
 		_current_index = (_current_index + 1) % patrol_points.size()

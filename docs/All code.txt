@@ -1,5 +1,8 @@
 # scripts/ai/enemy_ai.gd
-extends CharacterBody2D   # Godot 4 – use KinematicBody2D for Godot 3
+extends Node
+
+# Store a reference to the enemy (the node that owns the AI)
+var enemy : CharacterBody2D = null
 
 # Preloads --------------------------------------------------------------
 const StatePatrol = preload("res://scripts/ai/state_patrol.gd")
@@ -18,18 +21,33 @@ var _states = {}
 var _current_state : FSMState = null
 
 # ----------------------------------------------------------------------
-func _ready():
+func _init(_enemy : CharacterBody2D = null) -> void:
+	enemy = _enemy
+
+func _ready() -> void:
+	set_physics_process(true)   # make sure _physics_process runs
+	
+	# ---- Debug prints – now inside a function! ----
+	# print("[EnemyAI] Loaded state scripts:")
+	# print("  StateIdle   → ", StateIdle)
+	# print("  StatePatrol → ", StatePatrol)
+	# print("  StateChase  → ", StateChase)
+	# print("  StateAttack → ", StateAttack)
+	# print("  StateDead   → ", StateDead)
+	
 	# Build the dictionary of state objects
-	_states["idle"]   = StateIdle.new(self)
-	_states["patrol"] = StatePatrol.new(self)
-	_states["chase"]  = StateChase.new(self)
-	_states["attack"] = StateAttack.new(self)
-	_states["dead"]   = StateDead.new(self)
+	_states["idle"]   = StateIdle.new(enemy)
+	_states["patrol"] = StatePatrol.new(enemy)
+	_states["chase"]  = StateChase.new(enemy)
+	_states["attack"] = StateAttack.new(enemy)
+	_states["dead"]   = StateDead.new(enemy)
+	
+	_verify_states()
 
 	# Connect signals that states may emit
-	connect("lost_player", Callable(self, "_on_lost_player"))
-	connect("player_out_of_range", Callable(self, "_on_player_out_of_range"))
-	connect("idle_finished", Callable(self, "_on_idle_finished"))
+	connect("lost_player", Callable(enemy, "_on_lost_player"))
+	connect("player_out_of_range", Callable(enemy, "_on_player_out_of_range"))
+	connect("idle_finished", Callable(enemy, "_on_idle_finished"))
 
 	# Start with a brief idle, then patrol
 	change_state("idle")
@@ -44,6 +62,10 @@ func change_state(name: String) -> void:
 # ----------------------------------------------------------------------
 func _physics_process(delta):
 	if _current_state:
+		# <<< DEBUG >>> -------------------------------------------------
+		# print("[EnemyAI] current state → ", _current_state.get_class())
+		# ----------------------------------------------------------------
+		_current_state.physics_process(delta)
 		_current_state.physics_process(delta)
 
 	# Global transition checks (you can also move them into states)
@@ -63,18 +85,27 @@ func _physics_process(delta):
 # ----------------------------------------------------------------------
 # Helper utilities -------------------------------------------------------
 func sees_player() -> bool:
-	var player = get_node_or_null("/root/Main/Player")
-	if not player: return false
-	return owner.global_position.distance_to(player.global_position) < 400.0   # vision radius
+	var player = get_node_or_null("/root/TestArena/Player")
+	# -----------------------------------------------------------------
+	# Defensive check – if the player isn’t present, we simply say we
+	# don’t see it. This prevents the “null.global_position” crash.
+	# -----------------------------------------------------------------
+	if player == null:
+		# Uncomment the line below if you want to see when this happens.
+		print("[EnemyAI] sees_player() – player node not found")
+		return false
+
+	# At this point `player` is a valid node with a global_position.
+	return enemy.global_position.distance_to(player.global_position) < 400.0   # vision radius
 
 func in_attack_range() -> bool:
-	var player = get_node_or_null("/root/Main/Player")
+	var player = get_node_or_null("/root/TestArena/Player")
 	if not player: return false
-	return owner.global_position.distance_to(player.global_position) < 250.0   # same as attack_range
+	return enemy.global_position.distance_to(player.global_position) < 250.0   # same as attack_range
 
 func is_dead() -> bool:
 	# Replace with your own health check
-	return owner.has_meta("hp") and owner.get_meta("hp") <= 0
+	return enemy.has_meta("hp") and enemy.get_meta("hp") <= 0
 
 # ----------------------------------------------------------------------
 # Signal callbacks -------------------------------------------------------
@@ -86,6 +117,11 @@ func _on_player_out_of_range():
 
 func _on_idle_finished():
 	change_state("patrol")
+	
+func _verify_states():
+	for name in _states.keys():
+		var inst = _states[name]
+		print("[VERIFY] ", name, " instance class → ", inst.get_class())
 
 ---
 
@@ -109,6 +145,7 @@ var _ai : Node = null                    # will hold the EnemyAI script instance
 # SIGNALS – useful for UI, score, etc.
 # ------------------------------------------------------------------
 signal died                               # emitted when hp reaches 0
+signal idle_finished
 
 # ------------------------------------------------------------------
 # READY – set up health, sprite, and attach the FSM
@@ -132,8 +169,8 @@ func _ready() -> void:
 
 	# 2️⃣ Attach the FSM (the AI script you already wrote)
 	var ai_scene = preload("res://scripts/ai/enemy_ai.gd")
-	_ai = ai_scene.new()
-	add_child(__ai)                       # makes _ai part of the node tree
+	_ai = ai_scene.new(self)
+	add_child(_ai)                       # makes _ai part of the node tree
 	# The AI expects the *owner* to be the enemy node; because we added it as a child,
 	# its `owner` property will automatically be this enemy node.
 
@@ -157,17 +194,18 @@ func heal(amount : int) -> void:
 
 func get_health() -> int:
 	return _current_hp
-
+	
 ---
+
 # scripts/ai/fsm_state.gd
 extends RefCounted
 
 class_name FSMState
 
-var owner : Node = null   # the enemy node that owns this state
+var enemy : CharacterBody2D = null   # the actual enemy body
 
-func _init(_owner):
-	owner = _owner
+func _init(_enemy : CharacterBody2D):
+	enemy = _enemy
 
 func enter(): pass
 func exit(): pass
@@ -190,14 +228,14 @@ func enter():
 func physics_process(delta):
 	_time_since_last_shot += delta
 	
-	var player = get_node_or_null("/root/Main/Player")
+	var player = enemy.get_node_or_null("/root/TestArena/Player")
 	if not player:
 		return
 	
-	var distance = owner.global_position.distance_to(player.global_position)
+	var distance = enemy.global_position.distance_to(player.global_position)
 	if distance > attack_range:
 		# Player left range – tell the AI to switch state
-		owner.emit_signal("player_out_of_range")
+		enemy.emit_signal("player_out_of_range")
 		return
 	
 	if _time_since_last_shot >= fire_rate:
@@ -229,20 +267,23 @@ class_name StateChase
 @export var max_chase_distance : float = 800.0   # stop chasing if player gets too far
 
 func physics_process(delta):
-	var player = get_node_or_null("/root/Main/Player")
+	var player = enemy.get_node_or_null("/root/TestArena/Player")
 	if not player:
 		return
 	
-	var to_player = player.global_position - owner.global_position
+	var to_player = player.global_position - enemy.global_position
 	var distance = to_player.length()
 	
 	if distance > max_chase_distance:
 		# Too far – let the AI decide to go back to patrol
-		owner.emit_signal("lost_player")   # optional signal you can listen for
+		enemy.emit_signal("lost_player")   # optional signal you can listen for
 		return
 	
 	var direction = to_player.normalized()
-	owner.move_and_slide(direction * chase_speed)
+	# 1️⃣ Set the body’s velocity
+	enemy.velocity = direction * chase_speed
+	# 2️⃣ Apply the movement for this physics frame
+	enemy.move_and_slide()
 
 ---
 
@@ -257,7 +298,7 @@ var _timer : float = 0.0
 
 func enter():
 	# Play a death animation if the enemy has an AnimationPlayer
-	var anim_player = owner.get_node_or_null("AnimationPlayer")
+	var anim_player = enemy.get_node_or_null("AnimationPlayer")
 	if anim_player and anim_player.has_animation(death_animation):
 		anim_player.play(death_animation)
 	_timer = 0.0
@@ -265,7 +306,7 @@ func enter():
 func physics_process(delta):
 	_timer += delta
 	if _timer >= removal_delay:
-		owner.queue_free()
+		enemy.queue_free()
 
 ---
 
@@ -283,7 +324,7 @@ func enter():
 func physics_process(delta):
 	_elapsed += delta
 	if _elapsed >= idle_time:
-		owner.emit_signal("idle_finished")
+		enemy.emit_signal("idle_finished")
 
 ---
 
@@ -297,15 +338,25 @@ class_name StatePatrol
 var _current_index : int = 0
 
 func enter():
-	_current_index = randi() % patrol_points.size()
+	# Guard against an empty list – pick a safe default index
+	if patrol_points.is_empty():
+		_current_index = 0
+	else:
+		_current_index = randi() % patrol_points.size()
+
 
 func physics_process(delta):
-	if patrol_points.empty():
+	# Early‑out if there are no points to move toward
+	if patrol_points.is_empty():
 		return
 	
-	var target = patrol_points[_current_index]
-	var direction = (target - owner.global_position).normalized()
-	owner.move_and_slide(direction * speed)
+	var target : Vector2 = patrol_points[_current_index]
+	var direction : Vector2 = (target - enemy.global_position).normalized()
+	# 1️⃣ Set the body’s velocity
+	enemy.velocity = direction * speed
+	# 2️⃣ Apply the movement for this physics frame
+	enemy.move_and_slide()
 
-	if owner.global_position.distance_to(target) < 10.0:
+	# Switch to the next waypoint when we’re close enough
+	if enemy.global_position.distance_to(target) < 10.0:
 		_current_index = (_current_index + 1) % patrol_points.size()

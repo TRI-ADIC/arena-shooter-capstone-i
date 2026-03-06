@@ -18,6 +18,7 @@ var _ai : Node = null                    # will hold the EnemyAI script instance
 # SIGNALS – useful for UI, score, etc.
 # ------------------------------------------------------------------
 signal died                               # emitted when hp reaches 0
+signal idle_finished
 
 # ------------------------------------------------------------------
 # READY – set up health, sprite, and attach the FSM
@@ -41,7 +42,7 @@ func _ready() -> void:
 
 	# 2️⃣ Attach the FSM (the AI script you already wrote)
 	var ai_scene = preload("res://scripts/ai/enemy_ai.gd")
-	_ai = ai_scene.new()
+	_ai = ai_scene.new(self)
 	add_child(_ai)                       # makes _ai part of the node tree
 	# The AI expects the *owner* to be the enemy node; because we added it as a child,
 	# its `owner` property will automatically be this enemy node.

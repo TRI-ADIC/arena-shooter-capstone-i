@@ -12,4 +12,4 @@ func enter():
 func physics_process(delta):
 	_elapsed += delta
 	if _elapsed >= idle_time:
-		owner.emit_signal("idle_finished")
+		enemy.emit_signal("idle_finished")

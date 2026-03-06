@@ -13,14 +13,14 @@ func enter():
 func physics_process(delta):
 	_time_since_last_shot += delta
 	
-	var player = owner.get_node_or_null("Player")
+	var player = enemy.get_node_or_null("/root/TestArena/Player")
 	if not player:
 		return
 	
-	var distance = owner.global_position.distance_to(player.global_position)
+	var distance = enemy.global_position.distance_to(player.global_position)
 	if distance > attack_range:
 		# Player left range – tell the AI to switch state
-		owner.emit_signal("player_out_of_range")
+		enemy.emit_signal("player_out_of_range")
 		return
 	
 	if _time_since_last_shot >= fire_rate:
@@ -34,8 +34,8 @@ func fire_bullet():
 	#
 	# var bullet_scene = preload("res://scenes/bullet.tscn")
 	# var bullet = bullet_scene.instantiate()
-	# bullet.global_position = owner.global_position
-	# var dir = (player.global_position - owner.global_position).normalized()
+	# bullet.global_position = enemy.global_position
+	# var dir = (player.global_position - enemy.global_position).normalized()
 	# bullet.direction = dir
 	# get_tree().root.add_child(bullet)
 	#

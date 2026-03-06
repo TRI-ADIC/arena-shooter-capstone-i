@@ -9,7 +9,7 @@ var _timer : float = 0.0
 
 func enter():
 	# Play a death animation if the enemy has an AnimationPlayer
-	var anim_player = owner.get_node_or_null("AnimationPlayer")
+	var anim_player = enemy.get_node_or_null("AnimationPlayer")
 	if anim_player and anim_player.has_animation(death_animation):
 		anim_player.play(death_animation)
 	_timer = 0.0
@@ -17,4 +17,4 @@ func enter():
 func physics_process(delta):
 	_timer += delta
 	if _timer >= removal_delay:
-		owner.queue_free()
+		enemy.queue_free()

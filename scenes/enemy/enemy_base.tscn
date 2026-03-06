@@ -11,6 +11,7 @@ size = Vector2(72, 74)
 [node name="CharacterBody2D" type="CharacterBody2D" parent="."]
 position = Vector2(902, 104)
 script = ExtResource("1_qsge8")
+patrol_points = Array[Vector2]([Vector2(200, 150), Vector2(400, 150), Vector2(400, 350), Vector2(200, 350)])
 
 [node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
 scale = Vector2(0.105882354, 0.10588232)
