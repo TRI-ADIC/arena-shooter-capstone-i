@@ -19,6 +19,8 @@ var _ai : Node = null                    # will hold the EnemyAI script instance
 # ------------------------------------------------------------------
 signal died                               # emitted when hp reaches 0
 signal idle_finished
+signal lost_player
+signal player_out_of_range
 
 # ------------------------------------------------------------------
 # READY – set up health, sprite, and attach the FSM

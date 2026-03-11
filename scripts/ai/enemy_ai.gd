@@ -11,11 +11,6 @@ const StateAttack = preload("res://scripts/ai/state_attack.gd")
 const StateDead   = preload("res://scripts/ai/state_dead.gd")
 const StateIdle   = preload("res://scripts/ai/state_idle.gd")
 
-# Signals ---------------------------------------------------------------
-signal lost_player
-signal player_out_of_range
-signal idle_finished
-
 # State storage ---------------------------------------------------------
 var _states = {}
 var _current_state : FSMState = null
@@ -26,14 +21,14 @@ func _init(_enemy : CharacterBody2D = null) -> void:
 
 func _ready() -> void:
 		# 1️⃣ Does the global class exist?
-	if StateIdle is GDScript:
-		print("[CHECK] StateIdle is a registered class")
-	else:
-		print("[CHECK] StateIdle is NOT a class – it's a ", typeof(StateIdle))
+	# if StateIdle is GDScript:
+	# 	print("[CHECK] StateIdle is a registered class")
+	# else:
+	# 	print("[CHECK] StateIdle is NOT a class – it's a ", typeof(StateIdle))
 
 	# 2️⃣ Create an instance and print its class name
-	var test = StateIdle.new(null)   # we don’t need a real enemy for this check
-	print("[CHECK] test.get_class() → ", test.get_class())
+	# var test = StateIdle.new(null)   # we don’t need a real enemy for this check
+	# print("[CHECK] test.get_class() → ", test.get_class())
 	
 	set_physics_process(true)   # make sure _physics_process runs
 	
@@ -52,12 +47,12 @@ func _ready() -> void:
 	_states["attack"] = StateAttack.new(enemy)
 	_states["dead"]   = StateDead.new(enemy)
 	
-	_verify_states()
-
-	# Connect signals that states may emit
-	connect("lost_player", Callable(enemy, "_on_lost_player"))
-	connect("player_out_of_range", Callable(enemy, "_on_player_out_of_range"))
-	connect("idle_finished", Callable(enemy, "_on_idle_finished"))
+	# Connect the signal emitted by the ENEMY (parent) to THIS AI script's method
+	enemy.connect("idle_finished", Callable(self, "_on_idle_finished"))
+	enemy.connect("lost_player", Callable(self, "_on_lost_player"))
+	enemy.connect("player_out_of_range", Callable(self, "_on_player_out_of_range"))
+	
+	# _verify_states()
 
 	# Start with a brief idle, then patrol
 	change_state("idle")
@@ -68,6 +63,7 @@ func change_state(name: String) -> void:
 		_current_state.exit()
 	_current_state = _states[name]
 	_current_state.enter()
+	# wprint("[AI] Switching to state: ", name)
 
 # ----------------------------------------------------------------------
 func _physics_process(delta):
@@ -75,7 +71,6 @@ func _physics_process(delta):
 		# <<< DEBUG >>> -------------------------------------------------
 		# print("[EnemyAI] current state → ", _current_state.get_class())
 		# ----------------------------------------------------------------
-		_current_state.physics_process(delta)
 		_current_state.physics_process(delta)
 
 	# Global transition checks (you can also move them into states)

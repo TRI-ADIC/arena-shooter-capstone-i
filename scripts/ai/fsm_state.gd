@@ -1,6 +1,5 @@
 # scripts/ai/fsm_state.gd
 extends RefCounted
-
 class_name FSMState
 
 var enemy : CharacterBody2D = null   # the actual enemy body
