@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://bcdqs7g5kifmx"]
+[gd_scene load_steps=7 format=3 uid="uid://bcdqs7g5kifmx"]
 
 [ext_resource type="Script" uid="uid://dl5gd3bfxn4jp" path="res://feature-jason-combat-projectiles/main.gd" id="1_uu6xs"]
 [ext_resource type="Texture2D" uid="uid://cbb4lq6wvl3iy" path="res://feature-jason-combat-projectiles/FloorStreets0072_2_download600.jpg" id="2_cm0pq"]
 [ext_resource type="PackedScene" uid="uid://cq4dwrcxia4ob" path="res://feature-jason-combat-projectiles/Player.tscn" id="2_r0du0"]
 [ext_resource type="Script" uid="uid://bcp36a8afv2xu" path="res://feature-jason-combat-projectiles/camera_2d.gd" id="4_cm0pq"]
+[ext_resource type="PackedScene" uid="uid://de2yq4ply4tye" path="res://scenes/enemy/enemy_base.tscn" id="5_x7fum"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_r0du0"]
 size = Vector2(1797.5, 40)
@@ -13,15 +14,19 @@ script = ExtResource("1_uu6xs")
 
 [node name="Floor" type="Sprite2D" parent="."]
 modulate = Color(0.4351923, 0.43519226, 0.43519226, 1)
+position = Vector2(576, 325.5)
 scale = Vector2(3, 3)
 texture = ExtResource("2_cm0pq")
 
 [node name="Player" parent="." instance=ExtResource("2_r0du0")]
+position = Vector2(576, 325.5)
 
 [node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 325.5)
 script = ExtResource("4_cm0pq")
 
 [node name="Wall" type="StaticBody2D" parent="." groups=["walls"]]
+position = Vector2(576, 325.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Wall"]
 position = Vector2(-3, -574)
@@ -34,3 +39,6 @@ offset_top = -597.0
 offset_right = 897.5
 offset_bottom = -557.0
 color = Color(0.5551437, 0.49009997, 0.5858174, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="EnemyBase" parent="." instance=ExtResource("5_x7fum")]

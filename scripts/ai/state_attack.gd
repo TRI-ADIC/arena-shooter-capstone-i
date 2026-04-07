@@ -13,7 +13,7 @@ func enter():
 func physics_process(delta):
 	_time_since_last_shot += delta
 	
-	var player = enemy.get_node_or_null("/root/TestArena/Player")
+	var player = enemy.get_node_or_null("/root/Node2D/Player")
 	if not player:
 		return
 	

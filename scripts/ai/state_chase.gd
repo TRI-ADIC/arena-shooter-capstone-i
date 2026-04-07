@@ -6,7 +6,7 @@ class_name StateChase
 @export var max_chase_distance : float = 800.0   # stop chasing if player gets too far
 
 func physics_process(delta):
-	var player = enemy.get_node_or_null("/root/TestArena/Player")
+	var player = enemy.get_node_or_null("/root/Node2D/Player")
 	if not player:
 		return
 	

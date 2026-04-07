@@ -90,7 +90,7 @@ func _physics_process(delta):
 # ----------------------------------------------------------------------
 # Helper utilities -------------------------------------------------------
 func sees_player() -> bool:
-	var player = get_node_or_null("/root/TestArena/Player")
+	var player = get_node_or_null("/root/Node2D/Player")
 	# -----------------------------------------------------------------
 	# Defensive check – if the player isn’t present, we simply say we
 	# don’t see it. This prevents the “null.global_position” crash.
@@ -104,7 +104,7 @@ func sees_player() -> bool:
 	return enemy.global_position.distance_to(player.global_position) < 400.0   # vision radius
 
 func in_attack_range() -> bool:
-	var player = get_node_or_null("/root/TestArena/Player")
+	var player = get_node_or_null("/root/Node2D/Player")
 	if not player: return false
 	return enemy.global_position.distance_to(player.global_position) < 250.0   # same as attack_range
 
