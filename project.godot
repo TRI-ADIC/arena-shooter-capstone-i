@@ -11,7 +11,8 @@ config_version=5
 [application]
 
 config/name="Arena Shooter Capstone I"
-run/main_scene="uid://bcdqs7g5kifmx"
+run/main_scene="uid://7nl6k4su66c3"
+>>>>>>> remotes/origin/feature/marcos-arena-gen
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
 
