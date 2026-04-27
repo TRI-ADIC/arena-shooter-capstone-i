@@ -1,5 +1,5 @@
 extends CharacterBody2D
-
+@onready var hp_bar = $"../HpBar"
 @export var move_speed: float = 300.0
 @export var fire_rate: float = 0.12
 @export var bullet_scene: PackedScene
@@ -62,3 +62,13 @@ func _play_muzzle_flash() -> void:
 	await get_tree().create_timer(0.06).timeout
 
 	muzzle_flash.visible = false
+
+func take_damage(amount: int = 1) -> void:
+	for i in amount:
+		hp_bar.hit()
+
+
+func _on_area_2d_body_entered(body: Node2D) -> void:
+	print("COLISION CON:", body.name)
+	if body.is_in_group("enemy"):
+		take_damage(1)

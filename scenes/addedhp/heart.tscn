@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://dktoss8c180o1"]
+
+[ext_resource type="Texture2D" uid="uid://psg8bqlobldd" path="res://assets/tiles/HeartsFrame1.png" id="1_v30as"]
+
+[node name="Heart" type="TextureRect"]
+anchors_preset = -1
+texture = ExtResource("1_v30as")
+expand_mode = 2
