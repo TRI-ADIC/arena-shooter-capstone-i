@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2c5u1ox7bya2"]
+
+[ext_resource type="Script" path="res://scenes/hp_bar.gd" id="1_l6ww1"]
+[ext_resource type="PackedScene" path="res://scenes/heart.tscn" id="2_6bv7e"]
+
+[node name="HpBar" type="CanvasLayer"]
+script = ExtResource("1_l6ww1")
+heart_scene = ExtResource("2_6bv7e")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+offset_left = 30.0
+offset_top = 24.0
+offset_right = 183.0
+offset_bottom = 68.0
