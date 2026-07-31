@@ -36,7 +36,10 @@ func _ready() -> void:
 	_container.add_theme_constant_override("separation", 20)
 	add_child(_container)
 
-func show_choices(choices: Array) -> void:
+func show_choices(choices: Array, title: String = "LEVEL UP! Choose an upgrade:") -> void:
+	# Update the title label (supports both level-up and death screens)
+	_label.text = title
+
 	# Clear old cards
 	for child in _container.get_children():
 		child.queue_free()

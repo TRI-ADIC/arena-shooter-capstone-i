@@ -17,12 +17,15 @@ var xp_to_next_level: int = 100
  
 # --- Player stat modifiers (read by other systems via get_stat) ---
 var stats: Dictionary = {
-	"speed_bonus":       0.0,   # flat bonus added to base speed
-	"fire_rate_mult":    1.0,   # multiplier (1.0 = normal, 0.8 = 20% faster)
-	"bullet_damage_bonus": 0,   # flat bonus added to bullet damage
-	"max_health_bonus":  0,     # flat bonus added to max HP
-	"regen_rate":        0.0,   # HP per second
-	"bullet_speed_bonus": 0.0,  # flat bonus to bullet speed
+	"speed_bonus":         0.0,   # flat bonus added to base speed
+	"fire_rate_mult":      1.0,   # multiplier (1.0 = normal, 0.8 = 20% faster)
+	"bullet_damage_bonus": 0,     # flat bonus added to bullet damage
+	"max_health_bonus":    0,     # flat bonus added to max HP
+	"regen_rate":          0.0,   # HP per second
+	"bullet_speed_bonus":  0.0,   # flat bonus to bullet speed
+	# --- NEW in Capstone II ---
+	"bounce_bonus":        0,     # extra bullet bounces
+	"damage_reduction":    0.0,   # % damage reduction (0.15 = 15% less damage)
 }
  
 # --- All possible upgrades pool ---
@@ -83,6 +86,35 @@ const UPGRADE_POOL: Array = [
 		"stat": "bullet_damage_bonus",
 		"value": 10
 	},
+	# --- NEW in Capstone II ---
+	{
+		"id": "bouncy_bullets",
+		"name": "Bouncy Bullets",
+		"desc": "Bullets bounce 2 extra times",
+		"stat": "bounce_bonus",
+		"value": 2
+	},
+	{
+		"id": "double_regen",
+		"name": "Vampiric",
+		"desc": "Gain 4 HP per second",
+		"stat": "regen_rate",
+		"value": 4.0
+	},
+	{
+		"id": "iron_skin",
+		"name": "Iron Skin",
+		"desc": "Take 15% less damage",
+		"stat": "damage_reduction",
+		"value": 0.15
+	},
+	{
+		"id": "bullet_speed_up_2",
+		"name": "Hypersonic",
+		"desc": "Bullet speed +200",
+		"stat": "bullet_speed_bonus",
+		"value": 200.0
+	},
 ]
  
 # Reference to the upgrade UI scene (set in _ready)
@@ -97,6 +129,12 @@ func _ready() -> void:
 		# Connect the card chosen signal back to us
 		upgrade_ui.connect("upgrade_chosen", _on_upgrade_chosen)
 		upgrade_ui.hide_ui()
+
+	# --- NEW: Restore any upgrades carried over from a previous run ---
+	for upgrade in RunPersist.carried_upgrades:
+		var stat = upgrade["stat"]
+		if stats.has(stat):
+			stats[stat] += upgrade["value"]
  
 # -------------------------------------------------------
 # Call this when an enemy dies to grant XP.
@@ -134,17 +172,37 @@ func _on_upgrade_chosen(upgrade: Dictionary) -> void:
 	var stat = upgrade["stat"]
 	if stats.has(stat):
 		stats[stat] += upgrade["value"]
-	
+
+	# --- NEW: Save to RunPersist so it carries into the next run ---
+	RunPersist.add_upgrade(upgrade)
+
 	# Resume the game
 	get_tree().paused = false
- 
+
 	if upgrade_ui:
 		upgrade_ui.hide_ui()
- 
+
+	# --- NEW: If this was a death pick, reload the scene for a fresh run ---
+	if RunPersist.came_from_death:
+		RunPersist.came_from_death = false
+		get_tree().reload_current_scene()
+
+# -------------------------------------------------------
+# NEW — Call this from your player health script when HP hits 0.
+# Shows the upgrade picker with a "You Died" title before restarting.
+# -------------------------------------------------------
+func show_death_upgrade_selection() -> void:
+	RunPersist.came_from_death = true
+	get_tree().paused = true
+	var pool_copy = UPGRADE_POOL.duplicate()
+	pool_copy.shuffle()
+	var choices = pool_copy.slice(0, 3)
+	if upgrade_ui:
+		upgrade_ui.show_choices(choices, "You Died! Pick a perk for your next run:")
+
 # -------------------------------------------------------
 # Getter so other scripts can read bonuses cleanly.
 # Example: player_upgrades.get_stat("speed_bonus")
 # -------------------------------------------------------
 func get_stat(stat_name: String):
 	return stats.get(stat_name, 0)
- 
